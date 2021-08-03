@@ -2,11 +2,18 @@ const winston = require("winston");
 const cors = require("cors");
 const express = require("express");
 const mongoose = require("mongoose");
+const fs = require("fs");
+const https = require("https");
 
 const articles = require("./routes/articles");
 const projects = require("./routes/projects");
 const signUp = require("./routes/signUp");
 const signIn = require("./routes/signIn");
+
+var options = {
+  key: fs.readFileSync('/etc/letsencrypt/live/sieve.serveblog.net/privkey.pem'),
+  cert: fs.readFileSync('/etc/letsencrypt/live/sieve.serveblog.net/cert.pem')
+};
 
 winston.exceptions.handle(
   new winston.transports.Console({ colorize: true, prettyprint: true }),
@@ -40,11 +47,14 @@ app.get("/", (req, res) => {
 });
 
 const uri = process.env.CONNECTION;
-const port = process.env.PORT || 5000;
+const port = process.env.PORT || 443;
 
-app.listen(port, () => {
-  console.log(`Server running on port: ${port}`);
-});
+// app.use(express.static(('build'))); // to load front from here
+https.createServer(options, app).listen(port);
+
+// app.listen(port, () => {
+//   console.log(`Server running on port: ${port}`);
+// });
 
 mongoose
   .connect(uri, {
