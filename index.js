@@ -5,20 +5,21 @@ const mongoose = require("mongoose");
 const fs = require("fs");
 const https = require("https");
 
+const medias = require("./routes/medias");
 const articles = require("./routes/articles");
 const projects = require("./routes/projects");
 const signUp = require("./routes/signUp");
 const signIn = require("./routes/signIn");
 
-var options = {
-  key: fs.readFileSync('/etc/letsencrypt/live/sieve.serveblog.net/privkey.pem'),
-  cert: fs.readFileSync('/etc/letsencrypt/live/sieve.serveblog.net/cert.pem')
-};
+// var options = {
+//   key: fs.readFileSync('/etc/letsencrypt/live/sieve.serveblog.net/privkey.pem'),
+//   cert: fs.readFileSync('/etc/letsencrypt/live/sieve.serveblog.net/cert.pem')
+// };
 
-winston.exceptions.handle(
-  new winston.transports.Console({ colorize: true, prettyprint: true }),
-  new winston.transports.File({ filename: "uncaughtExceptions.log" })
-);
+// winston.exceptions.handle(
+//   new winston.transports.Console({ colorize: true, prettyprint: true }),
+//   new winston.transports.File({ filename: "uncaughtExceptions.log" })
+// );
 
 process.on("unhandledRejection", (error) => {
   throw error;
@@ -37,6 +38,7 @@ app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 app.use(express.json());
 app.use(cors());
 
+app.use("/api/medias", medias);
 app.use("/api/articles", articles);
 app.use("/api/projects", projects);
 app.use("/api/signup", signUp);
@@ -50,11 +52,12 @@ const uri = process.env.CONNECTION;
 const port = process.env.PORT || 443;
 
 // app.use(express.static(('build'))); // to load front from here
-https.createServer(options, app).listen(port);
+// https.createServer(options, app).listen(port);
 
-// app.listen(port, () => {
-//   console.log(`Server running on port: ${port}`);
-// });
+
+app.listen(port, () => {
+  console.log(`Server running on port: ${port}`);
+});
 
 mongoose
   .connect(uri, {

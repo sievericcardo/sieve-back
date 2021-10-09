@@ -6,7 +6,7 @@ const router = express.Router();
 
 const path = require('path');
 
-const { Article } = require("../models/article");
+const { Media } = require("../models/media");
 
 // Decoding base-64 image
 // Source: http://stackoverflow.com/questions/20267939/nodejs-write-base64-image-file
@@ -26,9 +26,9 @@ function decodeBase64Image(dataString) {
 
 router.get("/", async (req, res, next) => {
   try {
-    const articles = await Article.find().sort({ date: -1 });
+    const medias = await Media.find().sort({ date: -1 });
 
-    res.send(articles);
+    res.send(medias);
   } catch (error) {
     res.status(500).send("Error: " + error.message);
 
@@ -36,17 +36,11 @@ router.get("/", async (req, res, next) => {
   }
 });
 
-router.get('/image', async (req, res) => {
-  const url = req.query.path;
-  res.sendFile(path.resolve(url));
-});
-
 router.post("/", auth, async (req, res) => {
   const schema = Joi.object({
-    name: Joi.string().min(3).max(200).required(),
+    altText: Joi.string().min(3).max(200).required(),
     author: Joi.string().min(3),
     uid: Joi.string(),
-    body: Joi.string().required(),
     image: Joi.string(),
     date: Joi.date(),
   });
@@ -114,20 +108,18 @@ router.post("/", auth, async (req, res) => {
   }
 
   const image = userUploadedImagePath;
-  const { name, author, body, date, uid } = req.body;
+  const { altText, author, date, uid } = req.body;
 
-  let article = new Article({ name, author, body, image, date, uid });
+  let media = new Media({ altText, author, image, date, uid });
 
-  article = await article.save();
-  res.send(article);
+  media = await media.save();
+  res.send(media);
 });
-
 router.put("/:id", auth, async (req, res) => {
   const schema = Joi.object({
-    name: Joi.string().min(3).required(),
+    altText: Joi.string().min(3).required(),
     author: Joi.string().min(3),
     uid: Joi.string(),
-    body: Joi.string(),
     image: Joi.string(),
     date: Joi.date(),
   });
@@ -138,61 +130,40 @@ router.put("/:id", auth, async (req, res) => {
     return res.status(400).send(result.error.details[0].message);
   }
 
-  const article = await Article.findById(req.params.id);
+  const media = await Media.findById(req.params.id);
 
-  if (!article) {
-    return res.status(404).send("Article not found");
+  if (!media) {
+    return res.status(404).send("Media not found");
   }
 
-  if (article.uid !== req.user._id)
-    return res.status(401).send("Article update failed. Not authorized");
+  if (media.uid !== req.user._id)
+    return res.status(401).send("Media update failed. Not authorized");
 
-  const { name, author, body, image, date, uid } = req.body;
+  const { altText, author, image, date, uid } = req.body;
 
-  const updatedArticle = await Article.findByIdAndUpdate(
+  const updatedMedia = await Media.findByIdAndUpdate(
     req.params.id,
-    { name, author, body, date, image, uid },
+    { altText, author, date, image, uid },
     { new: true }
   );
 
-  res.send(updatedArticle);
+  res.send(updatedMedia);
 });
 
-// router.patch("/:id", auth, async (req, res) => {
-//   const article = await Article.findById(req.params.id);
-
-//   if (!article) return res.status(404).send("Article not found...");
-
-//   if (article.uid !== req.user._id)
-//     return res.status(401).send("Article check/uncheck failed. Not authorized");
-
-//   const updatedArticle = await Article.findByIdAndUpdate(
-//     req.params.id,
-//     {
-//       : !article.isComplete,
-//     },
-//     {
-//       new: true,
-//     }
-//   );
-
-//   res.send(updatedArticle);
-// });
-
 router.delete("/:id", auth, async (req, res) => {
-  const article = await Article.findById(req.params.id);
+  const media = await Media.findById(req.params.id);
 
-  if (!article) {
-    return res.status(404).send("Article not found");
+  if (!media) {
+    return res.status(404).send("Media not found");
   }
 
-  if (article.uid !== req.user._id) {
-    return res.status(401).send("Article deletion failed. Not authorized");
+  if (media.uid !== req.user._id) {
+    return res.status(401).send("Media deletion failed. Not authorized");
   }
 
-  const deletedArticle = await Article.findByIdAndDelete(req.params.id);
+  const deletedMedia = await Media.findByIdAndDelete(req.params.id);
 
-  res.send(deletedArticle);
+  res.send(deletedMedia);
 });
 
 module.exports = router;
