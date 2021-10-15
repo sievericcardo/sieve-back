@@ -18,6 +18,18 @@ router.get("/", async (req, res, next) => {
   }
 });
 
+router.get("/:id", async (req, res, next) => {
+  try {
+    const writeup = await Writeup.findById(req.params.id);
+
+    res.send(writeup);
+  } catch (error) {
+    res.status(500).send("Error: " + error.message);
+
+    winston.error(error.message);
+  }
+})
+
 router.post("/", auth, async (req, res) => {
   const schema = Joi.object({
     name: Joi.string().min(3).max(200).required(),
