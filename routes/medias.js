@@ -36,6 +36,11 @@ router.get("/", async (req, res, next) => {
   }
 });
 
+router.get('/image', async (req, res) => {
+  const url = req.query.path;
+  res.sendFile(path.resolve(url));
+});
+
 router.post("/", auth, async (req, res) => {
   const schema = Joi.object({
     altText: Joi.string().min(3).max(200).required(),

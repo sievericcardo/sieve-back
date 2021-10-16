@@ -11,6 +11,7 @@ const writeupSchema = new mongoose.Schema({
   author: String,
   uid: String,
   body: String,
+  description: String,
   image: String,
   date: {
     type: Date,
